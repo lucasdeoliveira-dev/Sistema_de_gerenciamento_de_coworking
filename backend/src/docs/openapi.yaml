@@ -18,6 +18,8 @@ tags:
     description: Módulo 1 — Lucas de Oliveira. Cadastro, login, sessão, perfil e senhas.
   - name: Usuários
     description: Módulo 1 — Lucas de Oliveira. Gestão de contas (somente ADMIN).
+  - name: Espaços
+    description: Módulo 2 — Samuel. Espaços e horários de funcionamento.
 
 paths:
   /saude:
@@ -353,6 +355,95 @@ paths:
         '403': { $ref: '#/components/responses/AcessoNegado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
+  /espacos:
+    get:
+      tags: [Espaços]
+      summary: Lista espaços com busca, tipo e paginação
+      description: Quem não é da gestão só vê espaços ativos.
+      security: [{ sessao: [] }]
+      parameters:
+        - { name: busca, in: query, schema: { type: string }, description: Nome do espaço }
+        - { name: tipo, in: query, schema: { $ref: '#/components/schemas/TipoEspaco' } }
+        - { name: ativo, in: query, schema: { type: string, enum: ['true', 'false'] }, description: Só a gestão }
+        - { name: pagina, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: porPagina, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Página de resultados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  itens:
+                    type: array
+                    items: { $ref: '#/components/schemas/Espaco' }
+                  total: { type: integer }
+                  pagina: { type: integer }
+                  porPagina: { type: integer }
+        '400': { $ref: '#/components/responses/DadosInvalidos' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+    post:
+      tags: [Espaços]
+      summary: Cadastra um espaço e a grade de funcionamento
+      description: Administração e gestão. Dia sem horário fica fechado. 1 = segunda-feira, 7 = domingo.
+      security: [{ sessao: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EspacoNovo' }
+      responses:
+        '201':
+          description: Espaço criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Espaco' }
+        '400': { $ref: '#/components/responses/DadosInvalidos' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/AcessoNegado' }
+        '409': { $ref: '#/components/responses/Conflito' }
+        '422': { $ref: '#/components/responses/DadosInvalidos' }
+
+  /espacos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdEspaco'
+    get:
+      tags: [Espaços]
+      summary: Um espaço, com a grade de funcionamento
+      security: [{ sessao: [] }]
+      responses:
+        '200':
+          description: Espaço encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Espaco' }
+        '400': { $ref: '#/components/responses/DadosInvalidos' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      tags: [Espaços]
+      summary: Edita dados, situação ou substitui a grade de funcionamento
+      description: Se `horarios` vier no corpo, a grade ativa é trocada por essa lista.
+      security: [{ sessao: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EspacoEditavel' }
+      responses:
+        '200':
+          description: Espaço atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Espaco' }
+        '400': { $ref: '#/components/responses/DadosInvalidos' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/AcessoNegado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflito' }
+        '422': { $ref: '#/components/responses/DadosInvalidos' }
+
 components:
   securitySchemes:
     sessao:
@@ -367,11 +458,70 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    IdEspaco:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
 
   schemas:
     Perfil:
       type: string
       enum: [ADMIN, GESTOR, RECEPCAO, SOLICITANTE]
+    TipoEspaco:
+      type: string
+      enum: [COWORKING, LABORATORIO, SALA]
+    HorarioFuncionamento:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        dia_semana: { type: integer, minimum: 1, maximum: 7, description: '1 = segunda-feira, 7 = domingo' }
+        hora_inicio: { type: string, example: '08:00' }
+        hora_fim: { type: string, example: '18:00' }
+    HorarioEntrada:
+      type: object
+      required: [diaSemana, horaInicio, horaFim]
+      properties:
+        diaSemana: { type: integer, minimum: 1, maximum: 7, description: '1 = segunda-feira, 7 = domingo' }
+        horaInicio: { type: string, example: '08:00' }
+        horaFim: { type: string, example: '18:00' }
+    Espaco:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        tipo: { $ref: '#/components/schemas/TipoEspaco' }
+        capacidade: { type: integer }
+        ativo: { type: boolean }
+        criado_em: { type: string, format: date-time }
+        atualizado_em: { type: string, format: date-time }
+        horarios:
+          type: array
+          items: { $ref: '#/components/schemas/HorarioFuncionamento' }
+    EspacoNovo:
+      type: object
+      required: [nome, tipo, capacidade, horarios]
+      properties:
+        nome: { type: string, minLength: 2, maxLength: 120 }
+        tipo: { $ref: '#/components/schemas/TipoEspaco' }
+        capacidade: { type: integer, minimum: 1, maximum: 500 }
+        horarios:
+          type: array
+          minItems: 1
+          maxItems: 21
+          items: { $ref: '#/components/schemas/HorarioEntrada' }
+    EspacoEditavel:
+      type: object
+      properties:
+        nome: { type: string, minLength: 2, maxLength: 120 }
+        tipo: { $ref: '#/components/schemas/TipoEspaco' }
+        capacidade: { type: integer, minimum: 1, maximum: 500 }
+        ativo: { type: boolean }
+        horarios:
+          type: array
+          minItems: 1
+          maxItems: 21
+          items: { $ref: '#/components/schemas/HorarioEntrada' }
     TipoPessoa:
       type: string
       enum: [FISICA, JURIDICA]
@@ -461,12 +611,12 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
     NaoEncontrado:
-      description: Registro não encontrado (USUARIO_NAO_ENCONTRADO)
+      description: Registro não encontrado (USUARIO_NAO_ENCONTRADO, ESPACO_NAO_ENCONTRADO)
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
     Conflito:
-      description: Dado já cadastrado (EMAIL_EM_USO, CPF_EM_USO, CNPJ_EM_USO)
+      description: Dado já cadastrado (EMAIL_EM_USO, CPF_EM_USO, CNPJ_EM_USO, ESPACO_DUPLICADO, HORARIO_DUPLICADO)
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }

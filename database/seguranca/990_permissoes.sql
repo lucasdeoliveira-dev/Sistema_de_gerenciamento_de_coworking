@@ -4,6 +4,7 @@ ALTER FUNCTION auditoria.fn_registrar_alteracao()
 ALTER FUNCTION fn_usuario_atual()                              SET search_path = public, pg_temp;
 ALTER FUNCTION fn_exigir_perfil(TEXT[])                        SET search_path = public, pg_temp;
 ALTER FUNCTION fn_login_bloqueado(CITEXT, INTEGER, INTERVAL)   SET search_path = public, pg_temp;
+ALTER FUNCTION fn_horario_sem_sobreposicao()                   SET search_path = public, pg_temp;
 
 REVOKE ALL ON SCHEMA auditoria FROM PUBLIC;
 
@@ -41,6 +42,8 @@ GRANT SELECT, INSERT ON tentativas_login TO sgec_app;
 GRANT SELECT ON vw_usuarios TO sgec_app;
 
 GRANT SELECT, INSERT, UPDATE ON empresas TO sgec_app;
+
+GRANT SELECT, INSERT, UPDATE ON espacos, horarios_funcionamento TO sgec_app;
 
 GRANT USAGE ON SCHEMA public, auditoria TO sgec_leitura;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO sgec_leitura;

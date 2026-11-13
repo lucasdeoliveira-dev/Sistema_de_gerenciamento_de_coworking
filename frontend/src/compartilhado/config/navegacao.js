@@ -3,6 +3,12 @@ import { PERFIS } from '@/compartilhado/config/perfis';
 export const MENU = [
   { rotulo: 'Início', para: '/', perfis: null },
   {
+    rotulo: 'Espaços',
+    para: '/espacos',
+    perfis: null,
+    descricao: 'Coworking, laboratórios e salas, com os horários de funcionamento.',
+  },
+  {
     rotulo: 'Usuários',
     para: '/admin/usuarios',
     perfis: [PERFIS.ADMIN],
@@ -17,11 +23,6 @@ export const MENU = [
 ];
 
 export const AREAS_EM_CONSTRUCAO = [
-  {
-    rotulo: 'Espaços e disponibilidade',
-    descricao: 'Coworking, laboratórios e salas, com os horários de funcionamento.',
-    responsavel: 'Samuel',
-  },
   {
     rotulo: 'Reservas',
     descricao: 'Pedir um horário, aceitar o termo de uso e acompanhar os pedidos.',

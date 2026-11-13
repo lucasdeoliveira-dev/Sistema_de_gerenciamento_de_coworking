@@ -9,6 +9,7 @@ import EsqueciSenha from '@/modulos/auth/paginas/EsqueciSenha';
 import RedefinirSenha from '@/modulos/auth/paginas/RedefinirSenha';
 import MeuPerfil from '@/modulos/auth/paginas/MeuPerfil';
 import Usuarios from '@/modulos/usuarios/paginas/Usuarios';
+import Espacos from '@/modulos/espacos/paginas/Espacos';
 import Inicio from '@/compartilhado/paginas/Inicio';
 import NaoEncontrado from '@/compartilhado/paginas/NaoEncontrado';
 
@@ -28,6 +29,7 @@ export default function App() {
         <Route element={<LayoutApp />}>
           <Route index element={<Inicio />} />
           <Route path="meu-perfil" element={<MeuPerfil />} />
+          <Route path="espacos" element={<Espacos />} />
           <Route element={<RotaProtegida perfis={[PERFIS.ADMIN]} />}>
             <Route path="admin/usuarios" element={<Usuarios />} />
           </Route>

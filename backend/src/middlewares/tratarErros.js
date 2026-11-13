@@ -4,6 +4,8 @@ const AppError = require('../utils/AppError');
 const CONSTRAINTS = {
   uq_usuarios_email: [409, 'EMAIL_EM_USO', 'Este e-mail já está cadastrado.'],
   uq_usuarios_cpf: [409, 'CPF_EM_USO', 'Este CPF já está cadastrado.'],
+  uq_espacos_nome: [409, 'ESPACO_DUPLICADO', 'Já existe um espaço com esse nome.'],
+  uq_horarios_funcionamento_inicio: [409, 'HORARIO_DUPLICADO', 'Já existe um horário começando nesse minuto.'],
   uq_empresas_cnpj: [
     409,
     'CNPJ_EM_USO',
