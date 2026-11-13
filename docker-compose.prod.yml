@@ -1,0 +1,13 @@
+services:
+  api:
+    build:
+      target: producao
+    environment:
+      NODE_ENV: production
+      COOKIE_SECURE: "true"
+    volumes: !reset []
+
+  web:
+    build:
+      target: producao
+    volumes: !reset []

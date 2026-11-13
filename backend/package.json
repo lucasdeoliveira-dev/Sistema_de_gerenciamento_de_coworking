@@ -1,0 +1,34 @@
+{
+  "name": "sgec-api",
+  "version": "1.0.0",
+  "description": "API do SGEC — Sistema de Gestão de Espaços Compartilhados (ABADEUS / UNESC)",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon --legacy-watch --watch src src/server.js",
+    "lint": "eslint .",
+    "formatar": "prettier --write .",
+    "verificar": "prettier --check . && eslint ."
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "pg": "^8.13.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "nodemon": "3.1.11",
+    "prettier": "^3.4.2",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1"
+  }
+}

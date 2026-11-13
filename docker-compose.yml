@@ -1,0 +1,119 @@
+name: sgec
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sgec-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Defina DB_NAME no .env}
+      POSTGRES_USER: ${DB_SUPERUSER:?Defina DB_SUPERUSER no .env}
+      POSTGRES_PASSWORD: ${DB_SUPERUSER_PASSWORD:?Defina DB_SUPERUSER_PASSWORD no .env}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD:?Defina DB_OWNER_PASSWORD no .env}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Defina DB_APP_PASSWORD no .env}
+      DB_LEITURA_PASSWORD: ${DB_LEITURA_PASSWORD:?Defina DB_LEITURA_PASSWORD no .env}
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
+    ports:
+      - "127.0.0.1:${DB_PORT_HOST:-15432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrar:
+    image: postgres:16-alpine
+    container_name: sgec-migrar
+    restart: "no"
+    environment:
+      PGHOST: db
+      DB_NAME: ${DB_NAME}
+      DB_OWNER_PASSWORD: ${DB_OWNER_PASSWORD}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./database:/sgec-database:ro
+    entrypoint: ["bash", "/sgec-database/migrar.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ./backend
+      target: desenvolvimento
+    container_name: sgec-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: sgec_app
+      DB_PASSWORD: ${DB_APP_PASSWORD}
+      FRONTEND_URL: ${SGEC_URL:-http://sgec.localhost}
+      TRUST_PROXY: 1
+      ADMIN_NOME: ${ADMIN_NOME:-Administrador}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_SENHA: ${ADMIN_SENHA:-}
+      TZ: America/Sao_Paulo
+    depends_on:
+      db:
+        condition: service_healthy
+      migrar:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:3000/api/saude || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  web:
+    build:
+      context: ./frontend
+      target: desenvolvimento
+    container_name: sgec-web
+    restart: unless-stopped
+    environment:
+      VITE_POLLING: "true"
+      SGEC_PORTA: ${SGEC_PORTA:-80}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:5173/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: sgec-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SGEC_PORTA:-80}:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  pgdata:

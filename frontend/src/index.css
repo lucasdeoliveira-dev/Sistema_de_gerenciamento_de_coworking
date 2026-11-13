@@ -1,0 +1,52 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+
+  --color-marca: #1f4466;
+  --color-marca-escura: #16324c;
+  --color-marca-clara: #e8eef5;
+  --color-painel: #e3edf3;
+  --color-superficie: #ffffff;
+  --color-contraste: #ffffff;
+
+  --color-fundo: #f4f6f9;
+  --color-texto: #1d2733;
+  --color-suave: #5b6878;
+  --color-borda: #d5dce5;
+
+  --color-erro: #b42318;
+  --color-erro-fundo: #fdecea;
+  --color-sucesso: #1e7b4f;
+  --color-sucesso-fundo: #e7f5ee;
+  --color-aviso: #8a5a00;
+  --color-aviso-fundo: #fff4dc;
+}
+
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+
+  --color-marca: #7ab0e6;
+  --color-marca-escura: #a3c8ef;
+  --color-marca-clara: #172433;
+  --color-superficie: #161616;
+  --color-contraste: #0a0a0a;
+
+  --color-fundo: #0a0a0a;
+  --color-texto: #ededed;
+  --color-suave: #a3a3a3;
+  --color-borda: #303030;
+
+  --color-erro: #f87171;
+  --color-erro-fundo: #2a1313;
+  --color-sucesso: #4ade80;
+  --color-sucesso-fundo: #0f2417;
+  --color-aviso: #fbbf24;
+  --color-aviso-fundo: #2a2008;
+}
+
+@layer base {
+  body {
+    @apply bg-fundo text-texto antialiased;
+  }
+}
